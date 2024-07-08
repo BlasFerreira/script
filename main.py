@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def check_url(new_url):
     try:
-        response = requests.head(new_url, timeout=5)
+        response = requests.head(new_url, timeout=100)  # Aumenta el tiempo de espera a 10 segundos
         if response.status_code == 200:
             return new_url, True
         else:
@@ -33,7 +33,7 @@ def check_images(url):
         urls_to_check.append(new_url)
     
     # Use a ThreadPoolExecutor to check the URLs in parallel
-    with ThreadPoolExecutor(max_workers=100) as executor:
+    with ThreadPoolExecutor(max_workers=50) as executor:  # Reduce max_workers to manage load
         futures = {executor.submit(check_url, url) for url in urls_to_check}
         for future in as_completed(futures):
             result = future.result()
@@ -58,8 +58,8 @@ def main():
     
     if st.button("Check Images"):
         if url:
-            st.write("Checking images, please wait...")
-            result = check_images(url)
+            with st.spinner("Checking images, please wait..."):
+                result = check_images(url)
             if result:
                 st.success(f"Found a valid URL: {result}")
                 st.image(result, caption="Valid Image", use_column_width=True)
